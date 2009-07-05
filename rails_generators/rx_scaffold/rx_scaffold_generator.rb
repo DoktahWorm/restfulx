@@ -139,11 +139,11 @@ class RxScaffoldGenerator < Rails::Generator::NamedBase
         
       if @layout.size > 0
         m.template "layouts/#{@layout}.erb",
-          File.join("#{@flex_root}", base_folder, "components", "generated", "#{@class_name}Box.mxml"), 
+          File.join("#{@flex_root}", base_folder, "views", "generated", "#{@class_name}Box.mxml"), 
           :assigns => { :resource_controller_name => "#{file_name.pluralize}" }
       else
         m.template "layouts/#{RxSettings.layouts.default}.erb",
-          File.join("#{@flex_root}", base_folder, "components", "generated", "#{@class_name}Box.mxml"), 
+          File.join("#{@flex_root}", base_folder, "views", "generated", "#{@class_name}Box.mxml"), 
           :assigns => { :resource_controller_name => "#{file_name.pluralize}" }
       end
 
@@ -155,9 +155,16 @@ class RxScaffoldGenerator < Rails::Generator::NamedBase
       unless options[:skip_migration]
         FileUtils.rm Dir.glob("db/migrate/[0-9]*_create_#{file_path.gsub(/\//, '_').pluralize}.rb"), :force => true        
         m.migration_template 'migration.rb.erb', 'db/migrate', :assigns => {
-          :migration_name => "Create#{class_name.pluralize.gsub(/::/, '')}"
+          :migration_name => "Create#{file_path.gsub(/\//, '_').pluralize.camelcase.gsub(/::/, '')}"
         }, :migration_file_name => "create_#{file_path.gsub(/\//, '_').pluralize}" unless options[:flex_only]
       end
+
+      m.directory(File.join('test/functional', controller_class_path))
+      m.directory(File.join('test/unit', class_path))
+      m.directory(File.join('test/unit/helpers', class_path))
+
+      m.template('functional_test.rb', File.join('test/functional', controller_class_path, "#{controller_file_name}_controller_test.rb"))
+      m.template('helper_test.rb',     File.join('test/unit/helpers',    controller_class_path, "#{controller_file_name}_helper_test.rb"))
       
       m.route_resources controller_file_name
 

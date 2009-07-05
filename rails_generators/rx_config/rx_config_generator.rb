@@ -49,8 +49,8 @@ class RxConfigGenerator < Rails::Generator::Base
     end
         
     @component_names = []
-    if File.exists?("#{flex_root}/#{base_folder}/components/generated")
-      @component_names = list_mxml_files("#{flex_root}/#{base_folder}/components/generated")
+    if File.exists?("#{flex_root}/#{base_folder}/views/generated")
+      @component_names = list_mxml_files("#{flex_root}/#{base_folder}/views/generated")
     end
   end
 
@@ -60,6 +60,8 @@ class RxConfigGenerator < Rails::Generator::Base
       m.file 'flex.properties', '.flexProperties'
       m.template 'restfulx.yml', 'config/restfulx.yml'
       m.template 'restfulx.erb', 'config/initializers/restfulx.rb'
+      
+      m.template 'session_store_flash.erb', 'config/initializers/session_store_flash.rb' if RAILS_GEM_VERSION =~ /2.3/
       
       m.directory "#{flex_root}"
       
@@ -85,11 +87,11 @@ class RxConfigGenerator < Rails::Generator::Base
         m.file "html-template/history/#{file}", "html-template/history/#{file}"
       end
       
-      %w(components controllers commands models events).each do |dir|
+      %w(views controllers commands models events helpers).each do |dir|
         m.directory "#{flex_root}/#{base_folder}/#{dir}"
       end
       
-      m.directory "#{flex_root}/#{base_folder}/components/generated"
+      m.directory "#{flex_root}/#{base_folder}/views/generated"
       
       framework_release = RestfulX::FRAMEWORK_VERSION
       framework_distribution_url = "http://restfulx.github.com/releases/restfulx-#{framework_release}.swc"
@@ -117,7 +119,7 @@ class RxConfigGenerator < Rails::Generator::Base
       
       m.template 'index.erb', 'app/views/flex/index.html.erb'
       
-      m.file 'routes.erb', 'config/routes.rb', :collision => :force
+      m.file 'routes.erb', 'config/routes.rb', :collision => :ask
       
       FileUtils.rm 'public/index.html' if File.exist?('public/index.html')
               
